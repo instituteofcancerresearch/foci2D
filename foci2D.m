@@ -5,7 +5,7 @@ function foci2D
 % measures channel 2 on a per cell basis
 
 %% TO DO
-
+% save output
 vars=getVars;
 tic
 cd(vars.directory)
@@ -34,7 +34,7 @@ for file=files' % go through all images
     maxSig = max(imFilt(:));
     imNorm = (imFilt - minSig) / (maxSig - minSig);
 
-    levelOtsu = graythresh(imNorm);
+    levelOtsu = vars.threshScaleCh1*graythresh(imNorm);
     bwCh1 = im2bw(imNorm,levelOtsu);
     bwCh1=~(bwareaopen(~bwCh1, vars.holeFill)); % FILL HOLES
     bwCh1=bwareaopen(bwCh1,vars.noiseRem); % remove small objs
@@ -71,18 +71,22 @@ vars.plot = questdlg('Display results? ', ...
     'Plotting', ...
     'Yes', 'No', 'No');
 
-prompt = {'Largest hole to fill:',...
+prompt = {'Nuclear segmentation threshold (a.u.):',...
+    'Foci segmentation threshold (a.u.)::',...
+    'Largest hole to fill:',...
+    'Largest object to remove:',...
     'Smoothing sigma (nucleus):',...
-    'Smoothing sigma (foci):',...
-    'Largest object to remove:'};
+    'Smoothing sigma (foci):'};
 
 dlg_title = 'Analysis variables';
 num_lines = 1;
-defaultans = {'500', '5', '1', '1000'};
+defaultans = {'1','1','500','1000', '5', '1'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
-vars.holeFill=str2double(answer{1});% largest hole to fill
-vars.filtSigmaCh1=str2double(answer{2});% smoothing kernel
-vars.filtSigmaCh2=str2double(answer{3});% smoothing kernel
+vars.threshScaleCh1=str2double(answer{1});%change sensitivity of threshold
+vars.threshScaleCh2=str2double(answer{2});%change sensitivity of threshold
+vars.holeFill=str2double(answer{3});% largest hole to fill
 vars.noiseRem=str2double(answer{4}); % smallest obj to remove
+vars.filtSigmaCh1=str2double(answer{5});% smoothing kernel
+vars.filtSigmaCh2=str2double(answer{6});% smoothing kernel
 
 end
