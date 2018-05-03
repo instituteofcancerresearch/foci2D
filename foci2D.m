@@ -13,12 +13,17 @@ cd(vars.directory)
 files=dir('*.lsm'); % all tif's in this folder
 numImages=length(files);
 imCount=0;
+
+f = waitbar(0,'1','Name','Analysing images...');
 for file=files' % go through all images
     imCount=imCount+1;
+    waitbar((imCount-1)/numImages,f,strcat("Analysing Image: ", num2str(imCount)))
+    
     rawFile{imCount}=file.name;
-
-    % load
-    [data, ~, ~]=lsmPrep2chan(rawFile{imCount});
+    disp(['Processing - ' rawFile{imCount}])
+    
+    % load - evalc to supress bf output
+    evalc('[data, ~, ~]=lsmPrep2chan(rawFile{imCount})');
     ch1Max=max(data.channel1,[],3);
     ch2Max=max(data.channel2,[],3);
     
@@ -54,6 +59,7 @@ for file=files' % go through all images
     fociPerCell(ch2Max, labelCell, labelDAPI, vars, rawFile{imCount});
                                                                                    
 end
+delete(f)
 toc
 end
 
