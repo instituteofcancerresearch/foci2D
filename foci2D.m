@@ -1,11 +1,10 @@
-% function foci2D
+function foci2D
 %% Adam Tyson | 2018-05-03 | adam.tyson@icr.ac.uk
 % loads an .lsm file, segments the first channel (nuclear), and estimates
 % cell boundaries
 % measures channel 2 on a per cell basis
 
 %% TO DO
-% meaure channel2 per cell
 
 vars=getVars;
 tic
@@ -19,20 +18,22 @@ for file=files' % go through all images
     rawFile{imCount}=file.name;
 
     % load
-    [data, voxSize, ~]=lsmPrep2chan(rawFile{imCount});
-    data.channel1Max=max(data.channel1,[],3);
-    data.channel2Max=max(data.channel2,[],3);
-
+    [data, ~, ~]=lsmPrep2chan(rawFile{imCount});
+    ch1Max=max(data.channel1,[],3);
+    ch2Max=max(data.channel2,[],3);
+    
     % segment
-    imageFiltered = imgaussfilt(data.channel1Max,vars.filtSigma);
+    imFilt = imgaussfilt(ch1Max,vars.filtSigmaCh1);
 
-    minSignal = min(imageFiltered(:));
-    maxSignal = max(imageFiltered(:));
-    imageDilatedNorm = (imageFiltered - minSignal) / (maxSignal - minSignal);
+    minSig = min(imFilt(:));
+    maxSig = max(imFilt(:));
+    imNorm = (imFilt - minSig) / (maxSig - minSig);
 
-    levelOtsu = graythresh(imageDilatedNorm);
-    bwCh1 = im2bw(imageDilatedNorm,levelOtsu);
-    bwCh1=~(bwareaopen(~bwCh1, vars.holeFill));
+    levelOtsu = graythresh(imNorm);
+    bwCh1 = im2bw(imNorm,levelOtsu);
+    bwCh1=~(bwareaopen(~bwCh1, vars.holeFill)); % FILL HOLES
+    bwCh1=bwareaopen(bwCh1,vars.noiseRem); % remove small objs
+
     
     % get borders
     labelDAPI = bwlabel(bwCh1);
@@ -40,13 +41,21 @@ for file=files' % go through all images
     DL = watershed(D);
     cellBorders = DL == 0;
     labelCell = bwlabel(~cellBorders);
-
+    labelCell=labelCell; 
+    
     if strcmp(vars.plot, 'Yes')
-        figure; imagesc(labelCell+labelDAPI), title(['Segmented Cells - ' rawFile{imCount}])
+        figure; 
+        imagesc(labelCell+labelDAPI),...
+            title(['Segmented Cells - ' rawFile{imCount}])
     end
+    
+    % measure other channel
+    [areaColoc{imCount}, intenColoc{imCount}, numFoci{imCount}] = ...
+    fociPerCell(ch2Max, labelCell, labelDAPI, vars, rawFile{imCount});
+                                                                                   
 end
 toc
-% end
+end
 
 %% Internal functions
 function vars=getVars
@@ -57,12 +66,17 @@ vars.plot = questdlg('Display results? ', ...
     'Yes', 'No', 'No');
 
 prompt = {'Largest hole to fill:',...
-    'Smoothing sigma:'};
+    'Smoothing sigma (nucleus):',...
+    'Smoothing sigma (foci):',...
+    'Largest object to remove:'};
 
 dlg_title = 'Analysis variables';
 num_lines = 1;
-defaultans = {'500', '5'};
+defaultans = {'500', '5', '1', '1000'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 vars.holeFill=str2double(answer{1});% largest hole to fill
-vars.filtSigma=str2double(answer{2});% smoothing kernel
+vars.filtSigmaCh1=str2double(answer{2});% smoothing kernel
+vars.filtSigmaCh2=str2double(answer{3});% smoothing kernel
+vars.noiseRem=str2double(answer{4}); % smallest obj to remove
+
 end
