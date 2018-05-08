@@ -27,8 +27,9 @@
 8. The script will then loop through all the images in the chosen folder. Each image will be processed in turn, and a number of parameters will be saved (if specified):
 
   * **fociNumbers_TIMESTAMP.csv** - number of foci per cell, per image
-  * **fociTotalInten_TIMESTAMP.csv** - total intensity of all pixels in foci, per cell, image
-  * **summaryResults.csv** - includes various parameters per image (but not per cell). These include:
+  * **fociTotalInten_TIMESTAMP.csv** - total intensity of all pixels in foci, per cell, per image
+  * **fociTotalArea_TIMESTAMP.csv** - total area of all foci, per cell, per image
+  * **summaryResults.csv** - includes various parameters per image (but not per cell), these include:
     * Mean foci number per cell
     * Mean total foci area per cell
     * Mean total foci intensity per cell
