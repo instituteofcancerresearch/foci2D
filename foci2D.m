@@ -6,6 +6,8 @@ function foci2D
 
 %% TO DO
 % save output
+% normalise output
+
 vars=getVars;
 tic
 cd(vars.directory)
@@ -47,12 +49,6 @@ for file=files' % go through all images
     cellBorders = DL == 0;
     labelCell = bwlabel(~cellBorders);
     labelCell=labelCell; 
-    
-    if strcmp(vars.plot, 'Yes')
-        figure; 
-        imagesc(labelCell+labelDAPI),...
-            title(['Segmented Cells - ' rawFile{imCount}])
-    end
     
     % measure other channel
     [areaColoc{imCount}, intenColoc{imCount}, numFoci{imCount}] = ...
