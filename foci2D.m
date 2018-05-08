@@ -5,7 +5,6 @@ function foci2D
 % measures channel 2 on a per cell basis
 
 %% TO DO
-% save output
 % normalise output
 
 vars=getVars;
@@ -16,6 +15,16 @@ files=dir('*.lsm'); % all tif's in this folder
 numImages=length(files);
 imCount=0;
 f = waitbar(0,'1','Name','Analysing images...');
+
+% prep for .csv export
+if strcmp(vars.save, 'Yes')
+    valMeans{1,1}='Image/variable';
+    valMeans{1,2}='Mean foci number per cell';
+    valMeans{1,3}='Mean total foci area per cell';
+    valMeans{1,4}='Mean total foci intensity per cell';
+    valMeans{1,5}='Number of cells';
+end
+ 
 for file=files' % go through all images
     imCount=imCount+1;
     waitbar((imCount-1)/numImages,f,strcat("Analysing Image: ",...
@@ -25,7 +34,8 @@ for file=files' % go through all images
     disp(['Processing - ' rawFile{imCount}])
     
     % load - evalc to supress bf output
-    evalc('[data, ~, ~]=lsmPrep2chan(rawFile{imCount})');
+     evalc('[data, ~, ~]=lsmPrep2chan(rawFile{imCount})');
+
     ch1Max=max(data.channel1,[],3);
     ch2Max=sum(data.channel2,3);
     
@@ -35,11 +45,22 @@ for file=files' % go through all images
     % measure other channel
     [areaColoc{imCount}, intenColoc{imCount}, numFoci{imCount}] = ...
     fociPerCell(ch2Max, labelCell, labelDAPI, vars, rawFile{imCount});
-    % save results
+
+    if strcmp(vars.save, 'Yes')
+        valMeans{imCount+1,1}=rawFile{imCount};
+        valMeans{imCount+1,2}=mean(numFoci{imCount});
+        valMeans{imCount+1,3}=mean(areaColoc{imCount});
+        valMeans{imCount+1,4}=mean(intenColoc{imCount});
+        valMeans{imCount+1,5}=max(labelDAPI(:));
+    end
+    
 end
 
+% save results
 if strcmp(vars.save, 'Yes')
+   disp('Saving Results')
    save_raw_res(rawFile, numFoci, intenColoc, areaColoc, imCount, vars) 
+   save_summary_res(valMeans, vars)
 end
 
 delete(f)
@@ -47,7 +68,12 @@ toc
 end
 
 %% Internal functions
-
+function save_summary_res(valMeans, vars)
+valMeans_Table=cell2table(valMeans);
+writetable(valMeans_Table, ['summaryResults_' vars.stamp '.csv'],...
+                            'WriteVariableNames', 0)
+end
+               
 function save_raw_res(rawFile, numFoci, intenColoc,...
                         areaColoc, imCount, vars)
 % tidy up
@@ -110,7 +136,7 @@ vars.save = questdlg('Save results as .csv? ', ...
 
 prompt = {'Nuclear segmentation threshold (a.u.):',...
     'Foci segmentation threshold (a.u.)::',...
-    'Largest hole to fill:',...
+    'Maximum hole size:',...
     'Largest object to remove:',...
     'Smoothing sigma (nucleus):',...
     'Smoothing sigma (foci):'};
