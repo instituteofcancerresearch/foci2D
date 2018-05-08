@@ -1,4 +1,4 @@
-function foci2D
+% function foci2D
 %% Adam Tyson | 2018-05-03 | adam.tyson@icr.ac.uk
 % loads an .lsm file, segments the first channel (nuclear), and estimates
 % cell boundaries
@@ -29,26 +29,7 @@ for file=files' % go through all images
     ch1Max=max(data.channel1,[],3);
     ch2Max=max(data.channel2,[],3);
     
-    % segment
-    imFilt = imgaussfilt(ch1Max,vars.filtSigmaCh1);
-
-    minSig = min(imFilt(:));
-    maxSig = max(imFilt(:));
-    imNorm = (imFilt - minSig) / (maxSig - minSig);
-
-    levelOtsu = vars.threshScaleCh1*graythresh(imNorm);
-    bwCh1 = im2bw(imNorm,levelOtsu);
-    bwCh1=~(bwareaopen(~bwCh1, vars.holeFill)); % FILL HOLES
-    bwCh1=bwareaopen(bwCh1,vars.noiseRem); % remove small objs
-
-    
-    % get borders
-    labelDAPI = bwlabel(bwCh1);
-    D = bwdist(bwCh1);
-    DL = watershed(D);
-    cellBorders = DL == 0;
-    labelCell = bwlabel(~cellBorders);
-    labelCell=labelCell; 
+    [labelDAPI, labelCell] = nucSegBorders(ch1Max, vars);
     
     % measure other channel
     [areaColoc{imCount}, intenColoc{imCount}, numFoci{imCount}] = ...
@@ -57,7 +38,7 @@ for file=files' % go through all images
 end
 delete(f)
 toc
-end
+% end
 
 %% Internal functions
 function vars=getVars

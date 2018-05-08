@@ -18,11 +18,11 @@ for cell=1:max(labelCell(:))
     tmpCell=labelCell==cell;
     tmpFociBin=bwCh2.*tmpCell;
     tmpFociRaw=imCh2.*tmpCell;
-    areaColoc(cell)=nnz(tmpFociBin);
-    intenColoc(cell)=sum(tmpFociRaw(:));
+    areaColoc(cell)=nnz(tmpFociBin); % total area of foci
+    intenColoc(cell)=sum(tmpFociRaw(:)); % total intensity of foci
     
     cc = bwconncomp(tmpFociBin,8);
-    numFoci(cell)  = cc.NumObjects;
+    numFoci(cell)  = cc.NumObjects; % number of foci
 end
 
 if strcmp(vars.plot, 'Yes')
