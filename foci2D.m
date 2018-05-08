@@ -27,7 +27,7 @@ for file=files' % go through all images
     % load - evalc to supress bf output
     evalc('[data, ~, ~]=lsmPrep2chan(rawFile{imCount})');
     ch1Max=max(data.channel1,[],3);
-    ch2Max=max(data.channel2,[],3);
+    ch2Max=sum(data.channel2,3);
     
     % segment nuclei and find edges
     [labelDAPI, labelCell] = nucSegBorders(ch1Max, vars);
