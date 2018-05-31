@@ -1,11 +1,10 @@
-% function foci2D
+function foci2D
 %% Adam Tyson | 2018-05-03 | adam.tyson@icr.ac.uk
 % loads an .lsm file, segments the first channel (nuclear), and estimates
 % cell boundaries
 % measures channel 2 on a per cell basis
 
 %% TO DO
-% save summary
 % normalise output
 
 vars=getVars;
@@ -35,9 +34,10 @@ for file=files' % go through all images
     disp(['Processing - ' rawFile{imCount}])
     
     % load - evalc to supress bf output
-    evalc('[data, ~, ~]=lsmPrep2chan(rawFile{imCount})');
+     evalc('[data, ~, ~]=lsmPrep2chan(rawFile{imCount})');
+
     ch1Max=max(data.channel1,[],3);
-    ch2Max=max(data.channel2,[],3);
+    ch2Max=sum(data.channel2,3);
     
     % segment nuclei and find edges
     [labelDAPI, labelCell] = nucSegBorders(ch1Max, vars);
@@ -52,30 +52,27 @@ for file=files' % go through all images
         valMeans{imCount+1,3}=mean(areaColoc{imCount});
         valMeans{imCount+1,4}=mean(intenColoc{imCount});
         valMeans{imCount+1,5}=max(labelDAPI(:));
-
     end
     
 end
 
-
 % save results
 if strcmp(vars.save, 'Yes')
+   disp('Saving Results')
    save_raw_res(rawFile, numFoci, intenColoc, areaColoc, imCount, vars) 
-   
-   % summary results
-
+   save_summary_res(valMeans, vars)
 end
 
 delete(f)
 toc
-% end
+end
 
 %% Internal functions
-function save_summary_res(valMeans)
-
-   writetable(valMeans, ['summaryResults_' vars.stamp '.csv'],...
+function save_summary_res(valMeans, vars)
+valMeans_Table=cell2table(valMeans);
+writetable(valMeans_Table, ['summaryResults_' vars.stamp '.csv'],...
                             'WriteVariableNames', 0)
-                        
+end
                
 function save_raw_res(rawFile, numFoci, intenColoc,...
                         areaColoc, imCount, vars)
@@ -137,9 +134,27 @@ vars.save = questdlg('Save results as .csv? ', ...
     'Saving', ...
     'Yes', 'No', 'Yes');
 
+vars.threshQ = questdlg('Specify foci threshold? ', ...
+    'Saving', ...
+    'Yes', 'No', 'No');
+
+if strcmp(vars.threshQ, 'Yes')
+    prompt = {'Nuclear segmentation threshold (a.u.):',...
+    'Foci segmentation threshold (a.u.)::',...
+    'Maximum hole size:',...
+    'Largest object to remove:',...
+    'Smoothing sigma (nucleus):',...
+    'Smoothing sigma (foci):'};
+
+dlg_title = 'Analysis variables';
+num_lines = 1;
+defaultans = {'1','1','500','1000', '5', '1'};
+answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+vars.hardCodeFociThresh=str2double(answer{1});% specificy thresh
+    
 prompt = {'Nuclear segmentation threshold (a.u.):',...
     'Foci segmentation threshold (a.u.)::',...
-    'Largest hole to fill:',...
+    'Maximum hole size:',...
     'Largest object to remove:',...
     'Smoothing sigma (nucleus):',...
     'Smoothing sigma (foci):'};

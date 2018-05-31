@@ -10,7 +10,13 @@ minSig = min(imageFilt(:));
 maxSig = max(imageFilt(:));
 imageDilNorm = (imageFilt - minSig) /(maxSig - minSig);
 
-levelOtsu = vars.threshScaleCh2*graythresh(imageDilNorm);
+if strcmp(vars.threshQ, 'Yes')
+    levelOtsu = vars.hardCodeFociThresh;
+else
+    levelOtsu = vars.threshScaleCh2*graythresh(imageDilNorm);
+    disp(['Foci threshold - ' num2str(levelOtsu)])
+end
+
 bwCh2 = im2bw(imageDilNorm,levelOtsu);
 
 % analyse
