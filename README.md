@@ -3,7 +3,7 @@
 
 #### Takes a two channel .lsm image. Channel 1 (nuclei) is maximum projected, and segmented. The nuclear segmentation is used to estimate cytoplasmic boundaries (midpoints between nuclei). Foci in the 2nd channel (sum projection) are then quantified on a cell by cell basis.
 
-##### N.B. needs a recent version of MATLAB and the Image Processing Toolbox. Also required biformats toolbox (included). Should work on Windows/OSX/Linux.
+##### N.B. needs a recent version of MATLAB and the Image Processing Toolbox. Also required bioformats toolbox (included). Should work on Windows/OSX/Linux.
 
 ## Instructions:
 
