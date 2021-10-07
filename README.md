@@ -1,5 +1,5 @@
 ## foci2D
-##### Adam Tyson | 2018-05-08 | adam.tyson@icr.ac.uk
+##### Adam Tyson | 2018-05-08 | adam.tyson01@icr.ac.uk
 
 #### Takes a two channel .lsm image. Channel 1 (nuclei) is maximum projected, and segmented. The nuclear segmentation is used to estimate cytoplasmic boundaries (midpoints between nuclei). Foci in the 2nd channel (sum projection) are then quantified on a cell by cell basis.
 
